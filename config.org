@@ -1,0 +1,172 @@
+#+TITLE Emacs Configuration
+
+* Shortcuts
+
+A table of common shortcuts from packages, useful as a reminder.
+
+| Name  | Function                                  |
+|-------+-------------------------------------------|
+| M-n W | Choose weaver in .Rmd (requires polymode) |
+|       |                                           |
+
+* Package archives
+
+The package archives Elpa and Melpa are used as the sources. Elpa is the
+official source and Melpa is the unofficial source, which contains many more
+packages. Elpa defaults the connection to http; in this case, it is replaced
+with a secure connection. Therefore the package-archives variable is set to nil
+in order that we can define our own.
+
+#+BEGIN_SRC emacs-lisp
+  (setq package-archives nil)
+  (defvar elpa '("elpa" . "https://elpa.gnu.org/packages/"))
+  (defvar melpa '("melpa" . "https://melpa.org/packages/"))
+  (add-to-list 'package-archives elpa t)
+  (add-to-list 'package-archives melpa t)
+#+END_SRC
+
+The packages need to bring back the latest content.
+
+#+BEGIN_SRC emacs-lisp
+  (package-initialize)
+  (unless (and (file-exists-p "~/.emacs.d/elpa/archives/gnu")
+               (file-exists-p "~/.emacs.d/elpa/archives/melpa"))
+    (package-refresh-contents))
+#+END_SRC
+
+Packages are better managed by the use-package package. This enables automatic
+package installation on new machines and encourages package options to be
+declared in the same part of the file as where they are defined
+
+#+BEGIN_SRC emacs-lisp
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
+#+END_SRC
+
+* Utilities and general behaviour
+
+Packages for moving around Emacs, enhancing functionality such as searching for
+functions, reminders of shortcuts when C-c or C-x or M-x is pressed, and so on.
+
+The counsel package helps find mode line functions.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package counsel
+    :ensure t
+    :bind*
+    (("C-s" . swiper)
+     ("C-c C-r" . ivy-resume)
+     ("M-x" . counsel-M-x)))
+#+END_SRC
+
+Personal preference is to put hard line breaks in documents when they flow over
+the 80 character limit.
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'text-mode-hook 'turn-on-auto-fill)
+  (add-hook 'text-mode-hook
+    '(lambda() (set-fill-column 80)))
+#+END_SRC
+
+The which key package reminds us of the available key combinations after C-c,
+M-x, or C-x is pressed.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+               :ensure t
+               :config
+               (which-key-mode))
+#+END_SRC
+
+It is a good idea to set up a backups folder so that working directories are not
+muddled with extra files.
+
+#+BEGIN_SRC 
+  (setq init-dir "~/.emacs.d/")
+  (defvar --backup-directory (concat init-dir "backups"))
+
+  (if (not (file-exists-p --backup-directory))
+      (make-directory --backup-directory t))
+#+END_SRC
+
+Ace Window is good for window management and replaces the functionality of the
+default C-x o.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :ensure t
+    :config
+    (define-key global-map (kbd "C-x o") 'ace-window))
+#+END_SRC
+
+* Programming environments
+
+Declared here are packages and options for managing different programming
+languages especially R, Clojure, Haskell, Python, LaTeX and Emacs Lisp. The
+Magit package is also declared and managed here.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ess
+    :ensure t
+    :config
+    (add-hook 'ess-mode-hook
+          (lambda () 
+            (ess-toggle-underscore nil))))
+#+END_SRC
+
+Compiling and running an .Rmd file requires a package called polymode. The
+system must have pandoc installed for knitting to html.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package polymode
+    :ensure t)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :ensure t)
+#+END_SRC
+
+* Graphics and text
+
+Packages and options to modify the look and feel, and packages to change how
+text is displayed, is managed here.
+
+#+BEGIN_SRC emacs-lisp
+  (tool-bar-mode -1)
+  (setq inhibit-splash-screen t)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (global-linum-mode)
+  (setq mouse-wheel-progressive-scroll-speed nil)
+  (setq ring-bell-function 'ignore)
+  (setq frame-resize-pixelwise t)
+#+END_SRC
+
+Relative line numbers make it easier to skip backwards and forwards in a
+document and the line the cursor is on displays the absolute line number in the
+document. 
+
+#+BEGIN_SRC emacs-lisp
+  (use-package linum-relative
+               :ensure t
+               :config
+               (linum-relative-global-mode)
+               (setq linum-relative-current-symbol ""))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (use-package arjen-grey-theme
+               :ensure t
+               :config
+               (load-theme 'arjen-grey t))
+#+END_SRC
+
+The Iosevka font is unusual in that it is a tall font, which is not perhaps 
+suited to widescreen monitors. However, the thin profile makes it very 
+readable, and more windows can be added going across the screen than would 
+otherwise be the case.
+
+#+BEGIN_SRC emacs-lisp
+  (set-frame-font "Iosevka") 
+#+END_SRC
