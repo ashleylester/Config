@@ -1,18 +1,48 @@
-#+TITLE Emacs Configuration
+#+TITLE: Emacs Configuration
+#+SETUPFILE: theme-readtheorg.setup 
+
+* Introduction
+
+To run the snippets in this Orgmode file, use the following command in ~init.el~
+
+#+BEGIN_EXAMPLE emacs-lisp
+(org-babel-load-file "~.emacs.d/config.org")
+#+END_EXAMPLE
 
 * Shortcuts
 
-A table of common shortcuts from packages, useful as a reminder.
+Shortcut keys, user defined, are specified here.
 
-| Name  | Function                                  |
-|-------+-------------------------------------------|
-| M-n W | Choose weaver in .Rmd (requires polymode) |
-|       |                                           |
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "<f5>") 'eval-buffer)
+#+END_SRC
+
+A table of common shortcuts, useful as a reminder.
+
+| Name    | Function                                     |
+|---------+----------------------------------------------|
+| M-n W   | Choose weaver in .Rmd (requires polymode)    |
+| M-n w   | Weave using chosen weaver in .Rmd files      |
+| M-n E   | Choose exporter in polymode such as html     |
+| M-n e   | Export using chosen exporter                 |
+| C-c C-p | Move to the previous heading in Orgmode      |
+| C-c C-n | Move to the next heading in Orgmode          |
+| C-s     | Swiper search and C-n to goto next           |
+| M-q     | Reflow the current paragraph                 |
+| C-c C-v | Browse URL of buffer (in Firefox for example |
+
+A table of common commands to enter into the mode line that might not be wanted
+straight away but nonetheless are useful to write down.
+
+| Name                    | Function                                    |
+|-------------------------+---------------------------------------------|
+| toggle-frame-fullscreen | Fullscreen mode (also works by hitting F11) |
+|                         |                                             |
 
 * Package archives
 
 The package archives Elpa and Melpa are used as the sources. Elpa is the
-official source and Melpa is the unofficial source, which contains many more
+official source and Melpa is the unofficial source, Melpa containing many more
 packages. Elpa defaults the connection to http; in this case, it is replaced
 with a secure connection. Therefore the package-archives variable is set to nil
 in order that we can define our own.
@@ -25,7 +55,8 @@ in order that we can define our own.
   (add-to-list 'package-archives melpa t)
 #+END_SRC
 
-The packages need to bring back the latest content.
+The packages need to bring back the latest content unless there is an archive
+already present.
 
 #+BEGIN_SRC emacs-lisp
   (package-initialize)
@@ -36,7 +67,9 @@ The packages need to bring back the latest content.
 
 Packages are better managed by the use-package package. This enables automatic
 package installation on new machines and encourages package options to be
-declared in the same part of the file as where they are defined
+defined in the same part of the file that the package is declared in. This is
+the only package that is going to be installed in this section; each other
+package will be defined and set up under the relevant headings.
 
 #+BEGIN_SRC emacs-lisp
   (unless (package-installed-p 'use-package)
@@ -65,7 +98,7 @@ the 80 character limit.
 #+BEGIN_SRC emacs-lisp
   (add-hook 'text-mode-hook 'turn-on-auto-fill)
   (add-hook 'text-mode-hook
-    '(lambda() (set-fill-column 80)))
+    (lambda() (set-fill-column 80)))
 #+END_SRC
 
 The which key package reminds us of the available key combinations after C-c,
@@ -81,7 +114,7 @@ M-x, or C-x is pressed.
 It is a good idea to set up a backups folder so that working directories are not
 muddled with extra files.
 
-#+BEGIN_SRC 
+#+BEGIN_SRC emacs-lisp
   (setq init-dir "~/.emacs.d/")
   (defvar --backup-directory (concat init-dir "backups"))
 
@@ -105,6 +138,25 @@ Declared here are packages and options for managing different programming
 languages especially R, Clojure, Haskell, Python, LaTeX and Emacs Lisp. The
 Magit package is also declared and managed here.
 
+The readthedocs theme makes a nice-looking html page from our orgmode files. To
+use the theme ~#+SETUPFILE: theme-readtheorg.setup~ needs to be declared as a
+property at the top of the file.
+
+#+BEGIN_SRC emacs-lisp
+  (unless (file-exists-p "~/.emacs.d/theme-readtheorg.setup")
+    (url-copy-file "http://bit.ly/2uC8FRm"
+                   "~/.emacs.d/theme-readtheorg.setup"))
+  (setq org-html-htmlize-output-type 'css)
+#+END_SRC
+
+The htmlize package creates blocks of syntax-highlighted code in html exports
+from Orgmode files based on the current Emacs theme.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package htmlize
+    :ensure t)
+#+END_SRC
+
 #+BEGIN_SRC emacs-lisp
   (use-package ess
     :ensure t
@@ -127,12 +179,27 @@ system must have pandoc installed for knitting to html.
     :ensure t)
 #+END_SRC
 
+Completion is done using company. Auto-complete is an alternative.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :ensure t
+    :config
+    (global-company-mode))
+#+END_SRC
+
 * Graphics and text
 
 Packages and options to modify the look and feel, and packages to change how
-text is displayed, is managed here.
+text is displayed, is managed here. The newline variables are set to nil; this
+prevents Emacs from adding new lines to the end of files
+automatically. Otherwise, the options are to hide the scroll bar, tool bar, and
+other graphical stuff.
 
 #+BEGIN_SRC emacs-lisp
+  (setq mode-require-final-newline nil)
+  (setq require-final-newline nil)
+  (setq org-src-fontify-natively t)
   (tool-bar-mode -1)
   (setq inhibit-splash-screen t)
   (menu-bar-mode -1)
@@ -144,7 +211,7 @@ text is displayed, is managed here.
 #+END_SRC
 
 Relative line numbers make it easier to skip backwards and forwards in a
-document and the line the cursor is on displays the absolute line number in the
+document. The line the cursor is on displays the absolute line number in the
 document. 
 
 #+BEGIN_SRC emacs-lisp
@@ -155,11 +222,21 @@ document.
                (setq linum-relative-current-symbol ""))
 #+END_SRC
 
+Two themes are declared here, occasionally swap between them depending on
+feeling.
+
 #+BEGIN_SRC emacs-lisp
-  (use-package arjen-grey-theme
-               :ensure t
-               :config
-               (load-theme 'arjen-grey t))
+  ;;(use-package arjen-grey-theme
+  ;;             :ensure t
+  ;;             :config
+  ;;             (load-theme 'arjen-grey t))
+  (use-package ample-theme
+    :init (progn (load-theme 'ample t t)
+                 (load-theme 'ample-flat t t)
+                 (load-theme 'ample-light t t)
+                 (enable-theme 'ample-flat))
+    :defer t
+    :ensure t)
 #+END_SRC
 
 The Iosevka font is unusual in that it is a tall font, which is not perhaps 
@@ -167,6 +244,46 @@ suited to widescreen monitors. However, the thin profile makes it very
 readable, and more windows can be added going across the screen than would 
 otherwise be the case.
 
+The Fantasque font takes some inspiration from Comic Sans and from Helvetica,
+along with some interesting cursive aspects to create something fun.
+
+The Terminus font focuses on crispness and is intended for long sessions where
+sub-pixel smoothing might not be the best thing for the tired programmer. For
+Windows, the ttf package that is used has a different name; therefore, this line
+is included as well. If in doubt, the font name is gotten by typing M-x
+set-frame-font and the font name is one of the hypen-delimited fields.
+
 #+BEGIN_SRC emacs-lisp
-  (set-frame-font "Iosevka") 
+  ;; (set-frame-font "Iosevka-12")
+  ;; (set-frame-font "Fantasque Sans Mono-12")
+  (set-frame-font "xos4 Terminus-12")
+  ;; (set-frame-font "Terminus (TTF)-12")
+#+END_SRC
+
+Powerline controls how the mode line is themed.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package powerline
+    :ensure t)
+#+END_SRC
+
+Spaceline is a powerline-inspired package that uses some of the Spacemacs
+inspired theming and offers a similar theme to Spacemacs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package spaceline
+    :ensure t
+    :config
+    (require 'spaceline-config)
+    (spaceline-emacs-theme))
+#+END_SRC
+
+* Cloud storage
+
+Dropbox integration helps sync the config, and other org mode files such as task
+lists, between computers.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dropbox
+    :ensure t)
 #+END_SRC
