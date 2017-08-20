@@ -3,7 +3,7 @@
 
 * Introduction
 
-To run the snippets in this Orgmode file, use the following command in ~init.el~
+To run the snippets in this Orgmode file, use the following function in ~init.el~
 
 #+BEGIN_EXAMPLE emacs-lisp
 (org-babel-load-file "~.emacs.d/config.org")
@@ -30,6 +30,7 @@ A table of common shortcuts, useful as a reminder.
 | C-s     | Swiper search and C-n to goto next           |
 | M-q     | Reflow the current paragraph                 |
 | C-c C-v | Browse URL of buffer (in Firefox for example |
+| <s TAB  | Start a code block in orgmode                |
 
 A table of common commands to enter into the mode line that might not be wanted
 straight away but nonetheless are useful to write down.
@@ -120,6 +121,19 @@ muddled with extra files.
 
   (if (not (file-exists-p --backup-directory))
       (make-directory --backup-directory t))
+
+  (setq backup-directory-alist `(("." . ,--backup-directory)))
+  (setq make-backup-files t 
+        backup-by-copying t 
+        version-control t 
+        delete-old-versions t 
+        delete-by-moving-to-trash t
+        kept-old-versions 6 
+        kept-new-versions 9 
+        auto-save-default t 
+        auto-save-timeout 20 
+        auto-save-interval 200 
+        )
 #+END_SRC
 
 Ace Window is good for window management and replaces the functionality of the
@@ -157,6 +171,8 @@ from Orgmode files based on the current Emacs theme.
     :ensure t)
 #+END_SRC
 
+Emacs Speaks Statistics is used to write and run R code from Emacs.
+
 #+BEGIN_SRC emacs-lisp
   (use-package ess
     :ensure t
@@ -174,6 +190,8 @@ system must have pandoc installed for knitting to html.
     :ensure t)
 #+END_SRC
 
+Use Magit for version control. This is very slow on Windows so perhaps disable?
+
 #+BEGIN_SRC emacs-lisp
   (use-package magit
     :ensure t)
@@ -188,17 +206,45 @@ Completion is done using company. Auto-complete is an alternative.
     (global-company-mode))
 #+END_SRC
 
+Projectile is used for project management. 
+
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :ensure t
+    :config
+    (projectile-global-mode t))
+#+END_SRC
+
+Paredit is a package to organise and synchronise pairs of braces, brackets and
+parens. In general, only use it for modes with a lisp-like syntax.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package paredit
+    :ensure t
+    :config
+    (add-hook 'emacs-lisp-mode-hook #'paredit-mode)
+    ;; enable in the *scratch* buffer
+    (add-hook 'lisp-interaction-mode-hook #'paredit-mode)
+    (add-hook 'ielm-mode-hook #'paredit-mode))
+#+END_SRC
+
+Company mode will obtain the documentation for objects when you press <f1> but
+unlike autocomplete there is no popup available, so this is from a package
+instead. Scrolling on the popup doesn't seem to work though.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company-quickhelp
+    :ensure t
+    :config
+    (company-quickhelp-mode 1))
+#+END_SRC
+
 * Graphics and text
 
 Packages and options to modify the look and feel, and packages to change how
-text is displayed, is managed here. The newline variables are set to nil; this
-prevents Emacs from adding new lines to the end of files
-automatically. Otherwise, the options are to hide the scroll bar, tool bar, and
-other graphical stuff.
+text is displayed, is managed here.
 
 #+BEGIN_SRC emacs-lisp
-  (setq mode-require-final-newline nil)
-  (setq require-final-newline nil)
   (setq org-src-fontify-natively t)
   (tool-bar-mode -1)
   (setq inhibit-splash-screen t)
@@ -222,21 +268,27 @@ document.
                (setq linum-relative-current-symbol ""))
 #+END_SRC
 
-Two themes are declared here, occasionally swap between them depending on
-feeling.
+Three themes are declared here, occasionally swap between them depending on
+feeling. The third theme is the fullest, in the sense that it works with
+spaceline and company and ace-window. The theme is quite grey so works best with
+the monitor at a high gamma and low brightness.
 
 #+BEGIN_SRC emacs-lisp
   ;;(use-package arjen-grey-theme
   ;;             :ensure t
   ;;             :config
   ;;             (load-theme 'arjen-grey t))
-  (use-package ample-theme
-    :init (progn (load-theme 'ample t t)
-                 (load-theme 'ample-flat t t)
-                 (load-theme 'ample-light t t)
-                 (enable-theme 'ample-flat))
-    :defer t
-    :ensure t)
+  ;;(use-package ample-theme
+  ;;  :init (progn (load-theme 'ample t t)
+  ;;               (load-theme 'ample-flat t t)
+  ;;               (load-theme 'ample-light t t)
+  ;;               (enable-theme 'ample-flat))
+  ;;  :defer t
+  ;;  :ensure t)
+  (use-package apropospriate-theme
+    :ensure t
+    :config 
+    (load-theme 'apropospriate-dark t))
 #+END_SRC
 
 The Iosevka font is unusual in that it is a tall font, which is not perhaps 
@@ -271,11 +323,15 @@ Spaceline is a powerline-inspired package that uses some of the Spacemacs
 inspired theming and offers a similar theme to Spacemacs.
 
 #+BEGIN_SRC emacs-lisp
+  ;;(use-package spaceline
+  ;;  :ensure t
+  ;;  :config
+  ;;  (require 'spaceline-config)
+  ;;  (spaceline-emacs-theme))
+  
+  ;; Test what happens in this scenario with the apropospriate theme
   (use-package spaceline
-    :ensure t
-    :config
-    (require 'spaceline-config)
-    (spaceline-emacs-theme))
+    :ensure t)
 #+END_SRC
 
 * Cloud storage
