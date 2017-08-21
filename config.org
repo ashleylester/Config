@@ -187,7 +187,20 @@ system must have pandoc installed for knitting to html.
 
 #+BEGIN_SRC emacs-lisp
   (use-package polymode
-    :ensure t)
+    :ensure t
+    :config
+    (require 'poly-R)
+    (require 'poly-markdown)
+    (add-to-list 'auto-mode-alist '("\\.Rmd" . poly-markdown+r-mode)))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (use-package markdown-mode
+    :ensure t
+    :config
+  (setq auto-mode-alist (cons '("\\.markdown" . markdown-mode) auto-mode-alist))
+  (setq auto-mode-alist (cons '("\\.md" . markdown-mode) auto-mode-alist))
+  (setq auto-mode-alist (cons '("\\.ronn?" . markdown-mode) auto-mode-alist)))
 #+END_SRC
 
 Use Magit for version control. This is very slow on Windows so perhaps disable?
@@ -245,6 +258,9 @@ Packages and options to modify the look and feel, and packages to change how
 text is displayed, is managed here.
 
 #+BEGIN_SRC emacs-lisp
+  (define-key global-map "\C-ca" 'org-agenda)
+  (setq org-agenda-files (list "~/work.org"))
+  (org-indent-mode)
   (setq org-src-fontify-natively t)
   (tool-bar-mode -1)
   (setq inhibit-splash-screen t)
@@ -308,8 +324,8 @@ set-frame-font and the font name is one of the hypen-delimited fields.
 #+BEGIN_SRC emacs-lisp
   ;; (set-frame-font "Iosevka-12")
   ;; (set-frame-font "Fantasque Sans Mono-12")
-  (set-frame-font "xos4 Terminus-12")
-  ;; (set-frame-font "Terminus (TTF)-12")
+  ;; (set-frame-font "xos4 Terminus-12")
+  (set-frame-font "Terminus-12")
 #+END_SRC
 
 Powerline controls how the mode line is themed.
@@ -328,10 +344,13 @@ inspired theming and offers a similar theme to Spacemacs.
   ;;  :config
   ;;  (require 'spaceline-config)
   ;;  (spaceline-emacs-theme))
-  
+
   ;; Test what happens in this scenario with the apropospriate theme
   (use-package spaceline
-    :ensure t)
+    :ensure t
+    :config
+    (require 'spaceline-config)
+    (spaceline-spacemacs-theme))
 #+END_SRC
 
 * Cloud storage
